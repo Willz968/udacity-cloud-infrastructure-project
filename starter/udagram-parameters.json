@@ -9,10 +9,10 @@
 	},
 	{
 		"ParameterKey": "AutoscalingDesiredCapacity",
-		"ParameterValue": "4"
+		"ParameterValue": "2"
 	},
 	{
 		"ParameterKey": "AutoscalingMaxSize",
-		"ParameterValue": "6"
+		"ParameterValue": "2"
 	}
 ]

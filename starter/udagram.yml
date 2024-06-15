@@ -18,6 +18,12 @@ Parameters:
     Type: String
     Description: Maximum capacity for the fleet of instances
 
+   # added for public subnet testing
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: "Name of an existing EC2 KeyPair to enable SSH access"
+    Default: my-key-pair
+
 Resources:
 
   SecurityGroup:
@@ -29,9 +35,14 @@ Resources:
           !Sub ${ProjectName}-vpc-id
       SecurityGroupIngress:
       - IpProtocol: tcp
-        FromPort: 3000
-        ToPort: 3000
+        FromPort: 80
+        ToPort: 80
         SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
+       # added for public subnet testing
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: "0.0.0.0/0"
 
   LaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
@@ -52,14 +63,27 @@ Resources:
             #!/bin/bash
             apt-get update -y
             sudo apt-get install nginx -y
+            cd /var/www/html
+            sudo bash -c 'cat > index.nginx-debian.html << EOF
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Udagram</title>
+            </head>
+            <body>
+                <h1>it works! Udagram, Udacity</h1>
+            </body>
+            </html>
+            EOF'
             service nginx start
+        KeyName: !Ref KeyName # added for public subnet testing
 
   AutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
       VPCZoneIdentifier:
-      - Fn::ImportValue: !Sub "${ProjectName}-private-subnet1"
-      - Fn::ImportValue: !Sub "${ProjectName}-private-subnet2"
+      - Fn::ImportValue: !Sub "${ProjectName}-public-subnet1" # changed for public subnet testing
+      - Fn::ImportValue: !Sub "${ProjectName}-public-subnet2" # changed for public subnet testing
       LaunchTemplate:
         LaunchTemplateId: !Ref LaunchTemplate
         Version: !GetAtt LaunchTemplate.LatestVersionNumber
@@ -104,28 +128,28 @@ Resources:
       Protocol: HTTP
 
   ListenerRule:
-      Type: AWS::ElasticLoadBalancingV2::ListenerRule
-      Properties:
-        Actions:
-        - Type: forward
-          TargetGroupArn: !Ref 'TargetGroup'
-        Conditions:
-        - Field: path-pattern
-          Values: [/]
-        ListenerArn: !Ref 'Listener'
-        Priority: 1
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+      - Type: forward
+        TargetGroupArn: !Ref 'TargetGroup'
+      Conditions:
+      - Field: path-pattern
+        Values: [/]
+      ListenerArn: !Ref 'Listener'
+      Priority: 1
 
   TargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      HealthCheckIntervalSeconds: 60 #10
+      HealthCheckIntervalSeconds: 10
       HealthCheckPath: /
       HealthCheckProtocol: HTTP
-      HealthCheckTimeoutSeconds: 30 #8
-      HealthyThresholdCount: 2 #2
-      Port: 3000
+      HealthCheckTimeoutSeconds: 8
+      HealthyThresholdCount: 2
+      Port: 80
       Protocol: HTTP
-      UnhealthyThresholdCount: 5 #5
+      UnhealthyThresholdCount: 5
       VpcId: 
         Fn::ImportValue:
           Fn::Sub: "${ProjectName}-vpc-id"
