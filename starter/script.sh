@@ -115,7 +115,6 @@ if [ $EXECUTION_MODE == "Deploy" ]; then
 elif [ $EXECUTION_MODE == "Delete" ]; then
     aws cloudformation delete-stack \
         --stack-name $STACK_NAME \
-        --capabilities CAPABILITY_NAMED_IAM  \
         --region=$REGION
 elif [ $EXECUTION_MODE == "Preview" ]; then
     aws cloudformation deploy \

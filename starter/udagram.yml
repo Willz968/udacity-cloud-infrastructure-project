@@ -18,12 +18,6 @@ Parameters:
     Type: String
     Description: Maximum capacity for the fleet of instances
 
-   # added for public subnet testing
-  KeyName:
-    Type: AWS::EC2::KeyPair::KeyName
-    Description: "Name of an existing EC2 KeyPair to enable SSH access"
-    Default: my-key-pair
-
 Resources:
 
   SecurityGroup:
@@ -38,11 +32,6 @@ Resources:
         FromPort: 80
         ToPort: 80
         SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
-       # added for public subnet testing
-      - IpProtocol: tcp
-        FromPort: 22
-        ToPort: 22
-        CidrIp: "0.0.0.0/0"
 
   LaunchTemplate:
     Type: AWS::EC2::LaunchTemplate
@@ -76,14 +65,13 @@ Resources:
             </html>
             EOF'
             service nginx start
-        KeyName: !Ref KeyName # added for public subnet testing
 
   AutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
       VPCZoneIdentifier:
-      - Fn::ImportValue: !Sub "${ProjectName}-public-subnet1" # changed for public subnet testing
-      - Fn::ImportValue: !Sub "${ProjectName}-public-subnet2" # changed for public subnet testing
+      - Fn::ImportValue: !Sub "${ProjectName}-private-subnet1"
+      - Fn::ImportValue: !Sub "${ProjectName}-private-subnet2"
       LaunchTemplate:
         LaunchTemplateId: !Ref LaunchTemplate
         Version: !GetAtt LaunchTemplate.LatestVersionNumber
