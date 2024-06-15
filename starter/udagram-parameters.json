@@ -1,6 +1,18 @@
 [
 	{
-		"ParameterKey": "Add you parameters here",
-		"ParameterValue": "Add you parameters here"
+		"ParameterKey": "ProjectName",
+		"ParameterValue": "cloudformation-project"
+	},
+	{
+		"ParameterKey": "AutoscalingMinSize",
+		"ParameterValue": "2"
+	},
+	{
+		"ParameterKey": "AutoscalingDesiredCapacity",
+		"ParameterValue": "4"
+	},
+	{
+		"ParameterKey": "AutoscalingMaxSize",
+		"ParameterValue": "6"
 	}
 ]
